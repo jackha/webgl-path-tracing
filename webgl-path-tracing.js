@@ -990,6 +990,7 @@ var RED_GREEN_CORNELL_BOX = 1;
 var environment = YELLOW_BLUE_CORNELL_BOX;
 
 function tick(timeSinceStart) {
+  // update screen. The more tick runs, the better.
   eye.elements[0] = zoomZ * Math.sin(angleY) * Math.cos(angleX);
   eye.elements[1] = zoomZ * Math.sin(angleX);
   eye.elements[2] = zoomZ * Math.cos(angleY) * Math.cos(angleX);
@@ -1000,7 +1001,20 @@ function tick(timeSinceStart) {
   ui.updateGlossiness();
   ui.updateEnvironment();
   ui.update(timeSinceStart);
+  //ui.render();
+}
+
+function show() {
+  //tick((new Date() - start) * 0.001);
   ui.render();
+  // update
+  speed = document.getElementById('speed');
+  speed.innerHTML = ui.renderer.pathTracer.sampleCount;
+  // separate show from tick.
+  angleY -= 0.005;
+  angleX += 0.004;
+  // clear the sample buffer
+  ui.renderer.pathTracer.sampleCount = 0;
 }
 
 function makeStacks() {
@@ -1159,7 +1173,17 @@ window.onload = function() {
     ui.setObjects(makeSphereColumn());
     var start = new Date();
     error.style.zIndex = -1;
-    setInterval(function(){ tick((new Date() - start) * 0.001); }, 1000 / 60);
+    //setInterval(function(){ console.log('testing'); }, 1000);
+    tick((new Date() - start) * 0.001);
+    // update screen 30 fps
+    setInterval(function(){ show();
+                   }, 1000 / 30);
+    // update the calculation
+    fun = function() {
+      tick((new Date() - start) * 0.001);
+      setTimeout(fun, 1);
+    }
+    setTimeout(fun, 1);
   } else {
     error.innerHTML = 'Your browser does not support WebGL.<br>Please see <a href="http://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">Getting a WebGL Implementation</a>.';
   }
